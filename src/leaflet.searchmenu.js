@@ -31,7 +31,6 @@ L.Control.SearchMenu = L.Control.extend({
         caseSensitive: false,
         threshold: 0.5,
         maxResultLength: null,
-        showResultFct: null,
         showInvisibleFeatures: true
     },
 
@@ -218,7 +217,7 @@ L.Control.SearchMenu = L.Control.extend({
 
     search: function(string) {
 
-        var result = this.options.search(string);
+        var results = this.options.search(string);
 
         // Empty result list
         $(".result-item").remove();
@@ -226,78 +225,36 @@ L.Control.SearchMenu = L.Control.extend({
         var resultList = $('.result-list')[0];
         var num = 0;
         var max = this.options.maxResultLength;
-        for (var i in result) {
-            var props = result[i];
-            var feature = props._feature;
-            var popup = this._getFeaturePopupIfVisible(feature);
-
-            if (undefined !== popup || this.options.showInvisibleFeatures) {
-                this.createResultItem(props, resultList, popup);
-                if (undefined !== max && ++num === max)
-                    break;
-            }
+        for (var i in results) {
+            var result = results[i];
+            this.createResultItem(result, resultList);
+            if (undefined !== max && ++num === max)
+                break;
         }
     },
 
-    _getFeaturePopupIfVisible: function(feature) {
-        var layer = feature.layer;
-        if (undefined !== layer && this._map.hasLayer(layer)) {
-            return layer.getPopup();
-        }
-    },
-
-    createResultItem: function(props, container, popup) {
+    createResultItem: function(result, container) {
 
         var _this = this;
-        var feature = props._feature;
 
         // Create a container and open the associated popup on click
         var resultItem = L.DomUtil.create('p', 'result-item', container);
 
-        if (undefined !== popup) {
-            L.DomUtil.addClass(resultItem, 'clickable');
-            resultItem.onclick = function() {
+        L.DomUtil.addClass(resultItem, 'clickable');
+        resultItem.onclick = function() {
 
-                if (window.matchMedia("(max-width:480px)").matches) {
-                    _this.hidePanel();
-                    feature.layer.openPopup();
-                } else {
-                    _this._panAndPopup(feature, popup);
-                }
-            };
-        }
+            if (window.matchMedia("(max-width:480px)").matches) {
+                _this.hidePanel();
+            }
+            _this.options.popup(result);
+        };
 
         // Fill in the container with the user-supplied function if any,
-        // otherwise display the feature properties used for the search.
-        if (null !== this.options.showResultFct) {
-            this.options.showResultFct(feature, resultItem);
-        } else {
-            str = '<b>' + props[this._keys[0]] + '</b>';
-            for (var i = 1; i < this._keys.length; i++) {
-                str += '<br/>' + props[this._keys[i]];
-            }
-            resultItem.innerHTML = str;
-        };
+        // otherwise display the result properties used for the search.
+        this.options.showResultFct(result, resultItem);
 
         return resultItem;
     },
-
-    _panAndPopup : function(feature, popup) {
-        // Temporarily adapt the map padding so that the popup is not hidden by the search pane
-        if (this._panelOnLeftSide) {
-            var oldPadding = popup.options.autoPanPaddingTopLeft;
-            var newPadding = new L.Point(- this.getOffset(), 10);
-            popup.options.autoPanPaddingTopLeft = newPadding;
-            feature.layer.openPopup();
-            popup.options.autoPanPaddingTopLeft = oldPadding;
-        } else {
-            var oldPadding = popup.options.autoPanPaddingBottomRight;
-            var newPadding = new L.Point(this.getOffset(), 10);
-            popup.options.autoPanPaddingBottomRight = newPadding;
-            feature.layer.openPopup();
-            popup.options.autoPanPaddingBottomRight = oldPadding;
-        }
-    }
 });
 
 L.control.searchMenu = function(options) {
