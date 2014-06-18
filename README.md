@@ -1,27 +1,14 @@
-<h1>leaflet-fusesearch</h1>
+<h1>leaflet-searchmenu</h1>
 
-Search features in a GeoJSON layer using the lightweight JavaScript fuzzy search <a href="https://github.com/krisk/Fuse">Fuse.js</a>
+Forked from https://github.com/naomap/leaflet-fusesearch
 
 <h2>Usage</h2>
 
-First download Fuse.js from <a href="https://github.com/krisk/Fuse">this repo<a/> or 
-from <a href="http://kiro.me/projects/fuse.html">Kiro's site</a>, and load it in your page before leaflet-fusesearch.js.<br/>
-<br/>
-Create the control L.Control.FuseSearch and add it to the Map.
+Create the control L.Control.SearchMenu and add it to the Map.
 <pre>
-var searchCtrl = L.control.fuseSearch()
+var searchCtrl = L.control.searchMenu()
 searchCtrl.addTo(map);
 </pre>
-
-Then load your GeoJSON layer and index the features, choosing the properties you want to index, e.g.
-<pre>
-searchCtrl.indexFeatures(features, ['name', 'company', 'details'];
-</pre>
-
-This is it !  By default the search control will appear on the top right corner of the map.
-This opens the search pane on the same side where you can type in the search string.
-The matching features are listed, with the indexed properties displayed. Clicking a feature
-on the list opens up the matching pop-up on the map, provided one is associated with it.
 
 <h2>Options</h2>
 
@@ -30,7 +17,7 @@ The FuseSearch control can be created with the following options :
 <li><code>position</code> : position of the control, the search pane shows on the matching side. Default <code>'topright'</code>.</li>
 <li><code>title</code> : used for the control tooltip, default <code>'Search'</code></li>
 <li><code>placeholder</code> : used for the input placeholder, default <code>'Search'</code></li>
-<li><code>maxResultLength</code> : number of features displayed in the result list, default is null 
+<li><code>maxResultLength</code> : number of features displayed in the result list, default is null
 	and all features found by Fuse are displayed</li>
 <li><code>showInvisibleFeatures</code> : display the matching features even if their layer is invisible, default true</li>
 <li><code>showResultFct</code> : function to display a feature returned by the search, parameters are the
@@ -45,13 +32,6 @@ The FuseSearch control can be created with the following options :
         container.appendChild(document.createTextNode(props.details));
     }
 </pre>
-
-In addition these options are directly passed to Fuse - more details on <a href="http://kiro.me/projects/fuse.html">Fuse.js</a> :
-<ul>
-<li><code>caseSensitive</code> : whether comparisons should be case sensitive, default is false</li>
-<li><code>threshold</code> : a decimal value indicating at which point the match algorithm gives up. 
-A threshold of 0.0 requires a perfect match, a threshold of 1.0 would match anything, default 0.5</li>
-</ul>
 
 <h2>Example</h2>
 

@@ -20,10 +20,10 @@ if (!Array.prototype.map)
   };
 }
 
-L.Control.FuseSearch = L.Control.extend({
-    
+L.Control.SearchMenu = L.Control.extend({
+
     includes: L.Mixin.Events,
-    
+
     options: {
         position: 'topright',
         title: 'Search',
@@ -34,35 +34,35 @@ L.Control.FuseSearch = L.Control.extend({
         showResultFct: null,
         showInvisibleFeatures: true
     },
-    
+
     initialize: function(options) {
         L.setOptions(this, options);
         this._panelOnLeftSide = (this.options.position.indexOf("left") !== -1);
     },
-    
+
     onAdd: function(map) {
-        
+
         var ctrl = this._createControl();
         this._createPanel(map);
         this._setEventListeners();
         map.invalidateSize();
-        
+
         return ctrl;
     },
-    
+
     onRemove: function(map) {
-        
+
         this.hidePanel(map);
         this._clearEventListeners();
         this._clearPanel(map);
         this._clearControl();
-        
+
         return this;
     },
-    
+
     _createControl: function() {
 
-        var className = 'leaflet-fusesearch-control',
+        var className = 'leaflet-searchmenu-control',
             container = L.DomUtil.create('div', className);
 
         // Control to open the search panel
@@ -80,7 +80,7 @@ L.Control.FuseSearch = L.Control.extend({
 
         return container;
     },
-    
+
     _clearControl: function() {
         // Unregister events to prevent memory leak
         var butt = this._openButton;
@@ -93,15 +93,15 @@ L.Control.FuseSearch = L.Control.extend({
         L.DomEvent.off(butt, 'click', L.DomEvent.preventDefault);
         L.DomEvent.off(butt, 'click', this.showPanel);
     },
-    
+
     _createPanel: function(map) {
         var _this = this;
 
         // Create the search panel
         var mapContainer = map.getContainer();
-        var className = 'leaflet-fusesearch-panel',
+        var className = 'leaflet-searchmenu-panel',
             pane = this._panel = L.DomUtil.create('div', className, mapContainer);
-        
+
         // Make sure we don't drag the map when we interact with the content
         var stop = L.DomEvent.stopPropagation;
         L.DomEvent.on(pane, 'click', stop)
@@ -120,7 +120,7 @@ L.Control.FuseSearch = L.Control.extend({
 
         // Intermediate container to get the box sizing right
         var container = L.DomUtil.create('div', 'content', pane);
-        
+
         // Search image and input field
         L.DomUtil.create('img', 'search-image', container);
         this._input = L.DomUtil.create('input', 'search-input', container);
@@ -128,20 +128,20 @@ L.Control.FuseSearch = L.Control.extend({
         this._input.placeholder = this.options.placeholder;
         this._input.onkeyup = function(evt) {
             var searchString = evt.currentTarget.value;
-            _this.searchFeatures(searchString);
+            _this.search(searchString);
         };
 
         // Close button
         var close = this._closeButton = L.DomUtil.create('a', 'close', container);
         close.innerHTML = '&times;';
         L.DomEvent.on(close, 'click', this.hidePanel, this);
-        
+
         // Where the result will be listed
-        this._resultList = L.DomUtil.create('div', 'result-list', container); 
-        
+        this._resultList = L.DomUtil.create('div', 'result-list', container);
+
         return pane;
     },
-    
+
     _clearPanel: function(map) {
 
         // Unregister event handlers
@@ -154,29 +154,29 @@ L.Control.FuseSearch = L.Control.extend({
                   .off(this._panel, 'MozMousePixelScroll', stop);
 
         L.DomEvent.off(this._closeButton, 'click', this.hidePanel);
-        
+
         var mapContainer = map.getContainer();
         mapContainer.removeChild(this._panel);
-        
+
         this._panel = null;
     },
-    
+
     _setEventListeners : function() {
         var that = this;
         var input = this._input;
         this._map.addEventListener('overlayadd', function() {
-            that.searchFeatures(input.value);
+            that.search(input.value);
         });
         this._map.addEventListener('overlayremove', function() {
-            that.searchFeatures(input.value);
+            that.search(input.value);
         });
     },
-    
+
     _clearEventListeners: function() {
         this._map.removeEventListener('overlayadd');
-        this._map.removeEventListener('overlayremove');        
+        this._map.removeEventListener('overlayremove');
     },
-    
+
     isPanelVisible: function () {
         return L.DomUtil.hasClass(this._panel, 'visible');
     },
@@ -189,7 +189,7 @@ L.Control.FuseSearch = L.Control.extend({
             this.fire('show');
             this._input.select();
             // Search again as visibility of features might have changed
-            this.searchFeatures(this._input.value);
+            this.search(this._input.value);
         }
     },
 
@@ -207,7 +207,7 @@ L.Control.FuseSearch = L.Control.extend({
             }
         }
     },
-    
+
     getOffset: function() {
         if (this._panelOnLeftSide) {
             return - this._panel.offsetWidth;
@@ -216,27 +216,9 @@ L.Control.FuseSearch = L.Control.extend({
         }
     },
 
-    indexFeatures: function(jsonFeatures, keys) {
+    search: function(string) {
 
-        this._keys = keys;
-        var properties = jsonFeatures.map(function(feature) {
-            // Keep track of the original feature
-            feature.properties._feature = feature;
-            return feature.properties;
-        });
-        
-        var options = {
-            keys: keys,
-            caseSensitive: this.options.caseSensitive,
-            threshold : this.options.threshold
-        };
-        
-        this._fuseIndex = new Fuse(properties, options);
-    },
-    
-    searchFeatures: function(string) {
-        
-        var result = this._fuseIndex.search(string);
+        var result = this.options.search(string);
 
         // Empty result list
         $(".result-item").remove();
@@ -248,7 +230,7 @@ L.Control.FuseSearch = L.Control.extend({
             var props = result[i];
             var feature = props._feature;
             var popup = this._getFeaturePopupIfVisible(feature);
-            
+
             if (undefined !== popup || this.options.showInvisibleFeatures) {
                 this.createResultItem(props, resultList, popup);
                 if (undefined !== max && ++num === max)
@@ -256,14 +238,14 @@ L.Control.FuseSearch = L.Control.extend({
             }
         }
     },
-    
+
     _getFeaturePopupIfVisible: function(feature) {
         var layer = feature.layer;
         if (undefined !== layer && this._map.hasLayer(layer)) {
             return layer.getPopup();
         }
     },
-    
+
     createResultItem: function(props, container, popup) {
 
         var _this = this;
@@ -271,11 +253,11 @@ L.Control.FuseSearch = L.Control.extend({
 
         // Create a container and open the associated popup on click
         var resultItem = L.DomUtil.create('p', 'result-item', container);
-        
+
         if (undefined !== popup) {
             L.DomUtil.addClass(resultItem, 'clickable');
             resultItem.onclick = function() {
-                
+
                 if (window.matchMedia("(max-width:480px)").matches) {
                     _this.hidePanel();
                     feature.layer.openPopup();
@@ -299,7 +281,7 @@ L.Control.FuseSearch = L.Control.extend({
 
         return resultItem;
     },
-    
+
     _panAndPopup : function(feature, popup) {
         // Temporarily adapt the map padding so that the popup is not hidden by the search pane
         if (this._panelOnLeftSide) {
@@ -318,6 +300,6 @@ L.Control.FuseSearch = L.Control.extend({
     }
 });
 
-L.control.fuseSearch = function(options) {
-    return new L.Control.FuseSearch(options);
+L.control.searchMenu = function(options) {
+    return new L.Control.SearchMenu(options);
 };
