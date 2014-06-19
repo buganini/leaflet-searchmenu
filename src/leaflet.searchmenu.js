@@ -216,21 +216,20 @@ L.Control.SearchMenu = L.Control.extend({
     },
 
     search: function(string) {
+        this.options.search(string, function(result){
+            // Empty result list
+            $(".result-item").remove();
 
-        var results = this.options.search(string);
-
-        // Empty result list
-        $(".result-item").remove();
-
-        var resultList = $('.result-list')[0];
-        var num = 0;
-        var max = this.options.maxResultLength;
-        for (var i in results) {
-            var result = results[i];
-            this.createResultItem(result, resultList);
-            if (undefined !== max && ++num === max)
-                break;
-        }
+            var resultList = $('.result-list')[0];
+            var num = 0;
+            var max = this.options.maxResultLength;
+            for (var i in results) {
+                var result = results[i];
+                this.createResultItem(result, resultList);
+                if (undefined !== max && ++num === max)
+                    break;
+            }
+        });
     },
 
     createResultItem: function(result, container) {
