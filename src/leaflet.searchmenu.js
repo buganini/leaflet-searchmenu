@@ -216,16 +216,17 @@ L.Control.SearchMenu = L.Control.extend({
     },
 
     search: function(string) {
+        var _this = this;
         this.options.search(string, function(result){
             // Empty result list
             $(".result-item").remove();
 
             var resultList = $('.result-list')[0];
             var num = 0;
-            var max = this.options.maxResultLength;
+            var max = _this.options.maxResultLength;
             for (var i in results) {
                 var result = results[i];
-                this.createResultItem(result, resultList);
+                _this.createResultItem(result, resultList);
                 if (undefined !== max && ++num === max)
                     break;
             }
