@@ -7,8 +7,8 @@ Forked from https://github.com/naomap/leaflet-fusesearch
 Create the control L.Control.SearchMenu and add it to the Map.
 <pre>
 var searchCtrl = L.control.searchMenu({
-    search: function(string) {
-        return ["id1", "id2", "id3"];
+    search: function(string, returnFunc) {
+        returnFunc(["id1", "id2", "id3"]);
     },
     showResultFct: function() {
         var name = L.DomUtil.create('b', null, container);
