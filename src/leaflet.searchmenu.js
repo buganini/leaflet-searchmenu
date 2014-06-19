@@ -217,7 +217,7 @@ L.Control.SearchMenu = L.Control.extend({
 
     search: function(string) {
         var _this = this;
-        this.options.search(string, function(result){
+        this.options.search(string, function(results){
             // Empty result list
             $(".result-item").remove();
 
